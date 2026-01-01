@@ -3,7 +3,8 @@ import { useRef, useState, useEffect } from 'react'
 
 import { ToastContainer, toast } from 'react-toastify';
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 
 
@@ -23,31 +24,34 @@ const Manager = (props) => {
     const ref = useRef(null);
     const passwordref = useRef();
     useEffect(() => {
-        const fetchPasswords = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+  const fetchPasswords = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-            try {
-                const res = await fetch(BASE_URL, {
-                    headers: {
-                        Authorization: "Bearer " + token
-                    }
-                });
+    try {
+      setLoading(true); // ✅ FIRST
 
-                if (!res.ok) throw new Error("Unauthorized");
+      const res = await fetch(`${BASE_URL}/`, {
+        headers: {
+          Authorization: "Bearer " + token
+        }
+      });
 
-                setLoading(true);
-                const data = await res.json();
-                setpassword(data);
-                setLoading(false);
+      if (!res.ok) throw new Error("Unauthorized");
 
-            } catch (err) {
-                console.error("Failed to fetch passwords");
-            }
-        };
+      const data = await res.json();
+      setpassword(data);
 
-        fetchPasswords();
-    }, []);
+    } catch (err) {
+      console.error("Failed to fetch passwords", err);
+    } finally {
+      setLoading(false); // ✅ ALWAYS runs
+    }
+  };
+
+  fetchPasswords();
+}, []);
+
 
 
 
