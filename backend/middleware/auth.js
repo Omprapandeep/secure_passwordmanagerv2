@@ -10,8 +10,8 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, "SECRETKEY");
-    req.userId = decoded.userId;   // 🔥 THIS IS REQUIRED
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // ✅ SAME SECRET
+    req.userId = decoded.userId; // 🔥 REQUIRED
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
