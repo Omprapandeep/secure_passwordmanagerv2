@@ -22,11 +22,14 @@ const port = process.env.PORT || 3000;
 /* ------------------ MIDDLEWARE ------------------ */
 app.use(cors({
   origin: [
-    "*",
-    "https://secure-passwordmanagerv2.vercel.app"
+    "https://secure-passwordmanagerv2-r4qo.vercel.app"
   ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
+app.options("*", cors());
+
 
 app.use(express.json());
 app.use(bodyParser.json());
