@@ -1,87 +1,139 @@
-const bodyParser = require('body-parser');
-const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb');
+const dotenv = require("dotenv");
+dotenv.config();
+const express = require("express");
+const bodyParser = require("body-parser");
 const cors = require("cors");
 
+const authMiddleware = require("./middleware/auth");
+const { encrypt, decrypt } = require("./utils/crypto");
 
 
-require("dotenv").config(); // load .env file
+
+const { MongoClient, ObjectId } = require("mongodb");
+const mongoose = require("mongoose");
+
+const authRoutes = require("./routes/auth");
+
+
 
 const app = express();
- app.use(bodyParser.json());
- const port = process.env.PORT || 3000;
-app.use(cors()); // allow all origins
-// Database Name
-const dbName = 'passop';
+const port = process.env.PORT || 3000;
 
-// Mongo client
+/* ------------------ MIDDLEWARE ------------------ */
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.json());
+
+/* ------------------ MONGOOSE (FOR AUTH) ------------------ */
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log(" Mongoose connected (Users)"))
+  .catch((err) => console.error(" Mongoose error:", err));
+
+/* ------------------ ROUTES ------------------ */
+app.use("/api/auth", authRoutes);
+
+/* ------------------ MONGODB NATIVE (FOR PASSWORDS) ------------------ */
+const dbName = "passop";
 const client = new MongoClient(process.env.MONGO_URI);
 
 let db;
 
-// Connect to MongoDB
 async function connectDB() {
   try {
     await client.connect();
-    db = client.db(dbName); // use 'passop' database
-    console.log(" Connected to MongoDB");
+    db = client.db(dbName);
+    console.log(" MongoDB Native connected (Passwords)");
   } catch (err) {
-    console.error(" MongoDB connection failed:", err);
+    console.error(" MongoDB Native connection failed:", err);
   }
 }
 
-// Route
-app.get('/', async (req, res) => {
+/* ------------------ PASSWORD ROUTES ------------------ */
+
+app.get("/", authMiddleware, async (req, res) => {
   try {
-    const collection = db.collection('passwords'); // use passwords collection
-    const allPasswords = await collection.find({}).toArray(); // fetch all docs
-    res.json(allPasswords);
+    const collection = db.collection("passwords");
+
+    const userPasswords = await collection
+      .find({ userId: req.userId }) // 🔐 ONLY USER DATA
+      .toArray();
+
+    const decryptedPasswords = userPasswords.map(p => ({
+      ...p,
+      password: decrypt(p.password)  // 🔓 DECRYPT HERE
+    }));
+
+    res.json(decryptedPasswords);
+
   } catch (err) {
-    console.error("Error fetching data:", err);
-    res.status(500).send("Internal Server Error");
+    res.status(500).json({ message: "Error fetching passwords" });
   }
 });
 
-app.post('/', async (req, res) => {
-    const {site,username,password}=req.body;
-    const collection = db.collection('passwords'); // use passwords collection
-     const result = await collection.insertOne({ site, username, password });
-    res.send({  success: true, insertedId: result.insertedId });
-
-});
-
-app.delete('/:id', async (req, res) => {
-
-    const {id}=req.params;
-     console.log("DELETE HIT");
-   console.log("ID RECEIVED:", req.params.id);
-
-    const collection = db.collection('passwords'); // use passwords collection
-    const result = await collection.deleteOne({_id: new ObjectId(id)});
-    res.send({success:true});
-
-});
-
-
-
-app.put('/:id', async (req, res) => {
-
-    const {id}=req.params;
-   
+//add password
+app.post("/", authMiddleware, async (req, res) => {
+  try {
+    console.log("USER ID FROM TOKEN 👉", req.userId); // 👈 ADD THIS
     const { site, username, password } = req.body;
-    const collection = db.collection('passwords'); // use passwords collection
-    const result = await collection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { site, username, password } }
-        );
-    res.send({success:true});
 
+    const collection = db.collection("passwords");
+    const encryptedPassword = encrypt(password);  // 🔐 ENCRYPT HERE
+
+    const result = await collection.insertOne({
+      site,
+      username,
+      password: encryptedPassword,  // ✅ encrypted password
+      userId: req.userId
+    });
+    res.json({ success: true, insertedId: result.insertedId });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
 
-// Start server AFTER connecting to DB
+// DELETE password
+app.delete("/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const collection = db.collection("passwords");
+    await collection.deleteOne({
+      _id: new ObjectId(id),
+      userId: req.userId   // 🔐 SECURITY CHECK
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+
+// UPDATE password
+app.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { site, username, password } = req.body;
+
+    const collection = db.collection("passwords");
+    const encryptedPassword = encrypt(password);  // 🔐 ENCRYPT
+
+    await collection.updateOne(
+      { _id: new ObjectId(id), userId: req.userId },
+      { $set: { site, username, password: encryptedPassword } }
+    );
+
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+/* ------------------ START SERVER ------------------ */
 connectDB().then(() => {
-  app.listen(port,'0.0.0.0', () => {
-    console.log(`Server running at http://localhost:${port}`);
+  app.listen(port, "0.0.0.0", () => {
+    console.log(` Server running at http://localhost:${port}`);
   });
 });
