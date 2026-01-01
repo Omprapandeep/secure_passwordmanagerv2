@@ -36,7 +36,9 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 /* ------------------ MONGOOSE (FOR AUTH) ------------------ */
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI,{
+  dbName: "passop"
+})
   .then(() => console.log(" Mongoose connected (Users)"))
   .catch((err) => console.error(" Mongoose error:", err));
 
