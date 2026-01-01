@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from 'react'
 
 import { ToastContainer, toast } from 'react-toastify';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL|| "http://localhost:3000";
 
 
 
