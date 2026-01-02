@@ -8,7 +8,8 @@ This application allows users to safely store, manage, and retrieve passwords wi
 ## Live Demo
 
 Frontend (Vercel):  
-https://secure-passwordmanagerv2-r4qo.vercel.app/login
+https://secure-passwordmanagerv2-r4qo.vercel.app
+
 
 Backend (Render):  
 https://secure-passwordmanagerv2-1.onrender.com
