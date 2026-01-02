@@ -1,69 +1,57 @@
-# 🔐 Password Manager – PassOP
+# Secure Password Manager (v2)
 
-A full-stack password manager web application that allows users to securely store, view, update, and delete their passwords.  
-Built using React (Vite), Node.js, Express, and MongoDB Atlas, and fully deployed on cloud platforms.
+A full-stack secure password manager built using **React, Node.js, Express, MongoDB**, and **JWT authentication**.  
+This application allows users to safely store, manage, and retrieve passwords with complete per-user data isolation.
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
 Frontend (Vercel):  
-https://password-manager-smoky.vercel.app
+https://secure-passwordmanagerv2-r4qo.vercel.app/login
 
-Backend:  
-Deployed on Render (used internally by the frontend)
-
----
-
-## ✨ Features
-
-- Add new passwords  
-- Edit existing passwords  
-- Delete saved passwords  
-- Show / hide passwords  
-- Copy site, username, and password to clipboard  
-- Light & Dark theme support  
-- Real-time UI updates  
-- Cloud-based storage using MongoDB Atlas  
+Backend (Render):  
+https://secure-passwordmanagerv2-1.onrender.com
 
 ---
 
-## 🛠️ Tech Stack
+## Features
+
+- User Signup and Login with JWT authentication
+- Password hashing using bcrypt
+- Encrypted password storage
+- Per-user password isolation
+- Add, edit, delete, and view passwords
+- Show / hide password feature
+- Light & Dark mode UI
+- Responsive design (mobile + desktop)
+- Secure API routes using middleware
+
+---
+
+## Tech Stack
 
 ### Frontend
 - React (Vite)
 - Tailwind CSS
-- React Toastify
+- React Router
 - Fetch API
 
 ### Backend
 - Node.js
 - Express.js
-- MongoDB (Native Driver)
-- CORS
-- dotenv
-
-### Database
-- MongoDB Atlas (Cloud NoSQL)
+- MongoDB Atlas
+- Mongoose
+- JWT (jsonwebtoken)
+- bcryptjs
+- Crypto module for encryption
 
 ### Deployment
 - Frontend: Vercel
 - Backend: Render
+- Database: MongoDB Atlas
 
 ---
 
-## 🏗️ Project Architecture
+## Project Structure
 
-React (Vite) – Frontend (Vercel)  
-↓ REST API  
-Node.js + Express – Backend (Render)  
-↓  
-MongoDB Atlas – Cloud Database  
-
----
-
-## ⚙️ Environment Variables
-
-### Frontend (.env)
-```env
-VITE_API_URL=https://your-backend-url.onrender.com
